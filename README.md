@@ -9,24 +9,14 @@ The burn() and burnBatch() functions in WesetProtocol.sol do not explicitly chec
 ```solidity
 
 function burn(
-
         address _owner,
-
         uint256 _tokenId,
-
         uint256 _amount
-
     ) external virtual {
-
         address caller = msg.sender;
-​
         require(caller == _owner || isApprovedForAll[_owner][caller], "Unapproved caller");
-
         require(balanceOf[_owner][_tokenId] >= _amount, "Not enough tokens owned");
-​
-
         _burn(_owner, _tokenId, _amount);
-
     }
 
 ```
@@ -34,7 +24,7 @@ function burn(
 Consider adding an explicit check to ensure that `_amount` is greater than 0, so that the function only allows burning of NFTs by callers who actually own them. This can be done by adding a simple `require` statement at the beginning of the function burn and in the inside for loop of burnBatch function
 
 Make the following changes:
-```
+```solidity
 // burn function
 require(_amount > 0, "_amount cannot be zero");
 // burnBatch function
