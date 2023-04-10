@@ -2,33 +2,75 @@
 # Missing of NatPec for functions
 
 
-# [H-02] Centralization Risk: Admin Can Block Users from Claiming Tokens
+# [H-01] ClaimCondition Struct data only updated in Memory, not in Storage
 
 ## Impact
-The `claim()` function in WesetDrop.sol allows users who are on the AllowlistProof to claim tokens under certain conditions set by the protocol admin using the `setClaimConditions()` function within the same contract, at any time. However, a compromised admin could launch a Denial of Service (DoS) attack on users by changing the claim conditions to any values before all users on the AllowlistProof are able to claim their tokens. This would cause affected users to lose their claim tokens until the next claim phase, which could potentially last for an unlimited period of time(currentClaimPhase.startTimestamp)
+The setClaimConditions() and claim() functions in WesetDrop.sol update the ClaimCondition struct data under certain conditions but only on the memory level and not on the storage level. Since ClaimCondition contains sensitive information, this can lead to data loss, inconsistency and a potential centralization risk.
+
+When calling setClaimConditions() to update new conditions for minting, it allows users to not mint under the new conditions set by the admin, as the values aren't updated on the storage level. This could lead to a centralization risk, as the admin could inadvertently DOS himself by not being able to update any data for the new minters.
 
 ## Proof of Concept
+Claim function()
 ```solidity
 
-function setClaimConditions(
-        uint256 _tokenId,
-        ClaimCondition calldata _condition,
-        bool _resetClaimEligibility,
-        uint256[] calldata _prices
-    ) external override {
-        if (!_canSetClaimConditions()) {
-            revert("Not authorized");
-        }
-        //..........
+ClaimCondition memory condition = claimCondition[_tokenId];
+        bytes32 activeConditionId = conditionId[_tokenId];
+        verifyClaim(
+            _tokenId,
+            _dropMsgSender(),
+            _quantity,
+            _currency,
+            _allowlistProof
+        );
+
+        // Update contract state.
+        condition.supplyClaimed += _quantity;
+        supplyClaimedByWallet[activeConditionId][_dropMsgSender()] += _quantity;
+        claimCondition[_tokenId] = condition;
 
 ```
+setClaimConditions()
+```solidity
+ClaimCondition memory condition = claimCondition[_tokenId];
+        bytes32 targetConditionId = conditionId[_tokenId];
+
+        uint256 supplyClaimedAlready = condition.supplyClaimed;
+
+        // Set price array for the token
+        setPrice(_tokenId, _prices);
+
+        if (_resetClaimEligibility) {
+            supplyClaimedAlready = 0;
+            targetConditionId = keccak256(
+                abi.encodePacked(_dropMsgSender(), block.number)
+            );
+        }
+
+        if (supplyClaimedAlready > _condition.maxClaimableSupply) {
+            revert("max supply claimed");
+        }
+
+        ClaimCondition memory updatedCondition = ClaimCondition({
+            startTimestamp: _condition.startTimestamp,
+            maxClaimableSupply: _condition.maxClaimableSupply,
+            supplyClaimed: supplyClaimedAlready,
+            quantityLimitPerWallet: _condition.quantityLimitPerWallet,
+            merkleRoot: _condition.merkleRoot,
+            pricePerToken: _condition.pricePerToken,
+            currency: _condition.currency,
+            metadata: _condition.metadata
+        });
+
+        claimCondition[_tokenId] = updatedCondition;
+        conditionId[_tokenId] = targetConditionId;
+```
 https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L37
-https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L101
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L57-L72
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L110-L148
+
 
 ## Recommended Mitigation Steps
-Consider adding time-lock functionalities to the setClaimConditions() function and communicate the change period to Weset users to increase transparency and security. This will ensure that all users have claimed their tokens under certain conditions before any changes are made by the Admin.
-
-
+Make sure to use the `storage` instead of `memory` when updating values on the storage level/blockchain
 
 
 # [M-01] WesetProtocol.sol: Sanity check bypass in burn() & burnBatch() functions
@@ -42,20 +84,12 @@ The burn() and burnBatch() functions in WesetProtocol.sol do not explicitly chec
 function burn(
 
         address _owner,
-
         uint256 _tokenId,
-
         uint256 _amount
-
     ) external virtual {
-
         address caller = msg.sender;
-​
         require(caller == _owner || isApprovedForAll[_owner][caller], "Unapproved caller");
-
         require(balanceOf[_owner][_tokenId] >= _amount, "Not enough tokens owned");
-​
-
         _burn(_owner, _tokenId, _amount);
 
     }
@@ -77,8 +111,6 @@ for (uint256 i = 0; i < _tokenIds.length; i += 1) {
 }
 
 ```
-
-
 
 ## /******** LOW  *********/
 
