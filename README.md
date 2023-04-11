@@ -80,24 +80,14 @@ The burn() and burnBatch() functions in WesetProtocol.sol do not explicitly chec
 ```solidity
 
 function burn(
-
         address _owner,
-
         uint256 _tokenId,
-
         uint256 _amount
-
     ) external virtual {
-
         address caller = msg.sender;
-​
         require(caller == _owner || isApprovedForAll[_owner][caller], "Unapproved caller");
-
         require(balanceOf[_owner][_tokenId] >= _amount, "Not enough tokens owned");
-​
-
         _burn(_owner, _tokenId, _amount);
-
     }
 
 ```
@@ -119,17 +109,14 @@ for (uint256 i = 0; i < _tokenIds.length; i += 1) {
 ```
 
 
-
-## /******** LOW  *********/
-
 # [L-01] Undeclared events emitted
-There are 3 instances of this issue:
-https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L144
-https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L87
-https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L144
+There are 3 instances of this issue:  
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L144  
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L87  
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L144  
 
 ## Impact
-This can lead to confusion for external parties trying to interact with the contract.
+This can lead to confusion when interacting with the contract through the user interface (UI) as it does not emit any events to provide or signal changes in contract state.
 
 ## Recommended Mitigation Steps
 Make sure to declare all events in the contract, including their parameter types, before emitting them.
@@ -145,8 +132,6 @@ All Contracts
 
 ## Recommended Mitigation Steps
 It is recommended to lock the pragma version in the contract from `^0.8.0` to a specific version, such as `0.8.0`.
-
-----------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------
 # [L-02] Missing zero-address check
@@ -167,30 +152,28 @@ require(_receiver != address(0));
 
 ----------------------------------------------------------------------------------------------------------------
 
-## /******** QA  *********/
-
 # [QA-01] use the latest version of the Solidity compiler
 It's recommended to use the latest version of the Solidity compiler `0.8.19` to benefit from the latest security features and bug fixes.
 
 # [QA-02] unused of NatSpec
-It is a best practice to use descriptive comments that comply with NatSpec to provide clear and comprehensive documentation for contracts, functions, and return variables.
+It is best practice to use descriptive comments that comply with NatSpec to provide clear and comprehensive documentation for contracts, functions, and return variables.
+
 ----------------------------------------------------------------------------------------------------------------
 
 # [QA-03] TWString is used but uncomment which will make the TWString not benefiting from the library  
-https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L19
-https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L39
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L19  
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L39  
+
 ----------------------------------------------------------------------------------------------------------------
 
-
-## /******** Gas optimizations  *********/
 # [QA-03] The msg.sender == owner() check in functions can be consolidated into a single modifier to improved code readability and  gas efficiency.
-https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L351-L417
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L351-L417  
+
 ## Recommended Mitigation Steps
 ```solidity
 modifier onlyOwner() {
     require(msg.sender == owner(), "Not authorized");
 }
-
 ```
 ----------------------------------------------------------------------------------------------------------------
 
