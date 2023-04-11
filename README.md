@@ -1,18 +1,15 @@
 # Weset-Audit-Report
-# Missing of NatPec for functions
 
 
 # [H-01] ClaimCondition Struct data only updated in Memory, not in Storage
-
 ## Impact
 The setClaimConditions() and claim() functions in WesetDrop.sol update the ClaimCondition struct data under certain conditions but only on the memory level and not on the storage level. Since ClaimCondition contains sensitive information, this can lead to data loss, inconsistency and a potential centralization risk.
 
 When calling setClaimConditions() to update new conditions for minting, it allows users to not mint under the new conditions set by the admin, as the values aren't updated on the storage level. This could lead to a centralization risk, as the admin could inadvertently DOS himself by not being able to update any data for the new minters.
 
 ## Proof of Concept
-Claim function()
 ```solidity
-
+// from claim function
 ClaimCondition memory condition = claimCondition[_tokenId];
         bytes32 activeConditionId = conditionId[_tokenId];
         verifyClaim(
@@ -29,8 +26,9 @@ ClaimCondition memory condition = claimCondition[_tokenId];
         claimCondition[_tokenId] = condition;
 
 ```
-setClaimConditions()
+
 ```solidity
+// from setClaimConditions() function
 ClaimCondition memory condition = claimCondition[_tokenId];
         bytes32 targetConditionId = conditionId[_tokenId];
 
@@ -64,9 +62,9 @@ ClaimCondition memory condition = claimCondition[_tokenId];
         claimCondition[_tokenId] = updatedCondition;
         conditionId[_tokenId] = targetConditionId;
 ```
-https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L37
-https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L57-L72
-https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L110-L148
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L37  
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L57-L72  
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L110-L148  
 
 
 ## Recommended Mitigation Steps
@@ -84,12 +82,20 @@ The burn() and burnBatch() functions in WesetProtocol.sol do not explicitly chec
 function burn(
 
         address _owner,
+
         uint256 _tokenId,
+
         uint256 _amount
+
     ) external virtual {
+
         address caller = msg.sender;
+​
         require(caller == _owner || isApprovedForAll[_owner][caller], "Unapproved caller");
+
         require(balanceOf[_owner][_tokenId] >= _amount, "Not enough tokens owned");
+​
+
         _burn(_owner, _tokenId, _amount);
 
     }
@@ -99,7 +105,7 @@ function burn(
 Consider adding an explicit check to ensure that `_amount` is greater than 0, so that the function only allows burning of NFTs by callers who actually own them. This can be done by adding a simple `require` statement at the beginning of the functions
 
 Make the following changes:
-```
+```solidity
 // burn function
 require(_amount > 0, "_amount cannot be zero");
 // burnBatch function
@@ -111,6 +117,8 @@ for (uint256 i = 0; i < _tokenIds.length; i += 1) {
 }
 
 ```
+
+
 
 ## /******** LOW  *********/
 
@@ -136,20 +144,53 @@ https://swcregistry.io/docs/SWC-103
 All Contracts
 
 ## Recommended Mitigation Steps
-It is recommended to lock the pragma version in the contract from `^0.8.0` to a specific version, such as `0.8.0` Additionally, it is also recommended to use the latest version of the Solidity compiler `0.8.19` to benefit from the latest security features and bug fixes.
+It is recommended to lock the pragma version in the contract from `^0.8.0` to a specific version, such as `0.8.0`.
 
 ----------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------
 # [L-02] Missing zero-address check
-Missing checks for zero-addresses may lead to unxpected bahaviors, if the variable addresses are updated incorrectly.
+Missing checks for zero-address.
 
 ## Proof of Concept
-There are 2 instances of this issue:
+There are 1 instances of this issue:
 https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L38
 
 
 ## Recommended Mitigation Steps
-It is recommended to lock the pragma version in the contract from `^0.8.0` to a specific version, such as `0.8.0` Additionally, it is also recommended to use the latest version of the Solidity compiler `0.8.19` to benefit from the latest security features and bug fixes.
+Make sure to add a `require` statement to check if the _receiver parameter address is not equal to address(0);
+
+```solidity
+require(_receiver != address(0));
+
+```
 
 ----------------------------------------------------------------------------------------------------------------
+
+## /******** QA  *********/
+
+# [QA-01] use the latest version of the Solidity compiler
+It's recommended to use the latest version of the Solidity compiler `0.8.19` to benefit from the latest security features and bug fixes.
+
+# [QA-02] unused of NatSpec
+It is a best practice to use descriptive comments that comply with NatSpec to provide clear and comprehensive documentation for contracts, functions, and return variables.
+----------------------------------------------------------------------------------------------------------------
+
+# [QA-03] TWString is used but uncomment which will make the TWString not benefiting from the library  
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L19
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L39
+----------------------------------------------------------------------------------------------------------------
+
+
+## /******** Gas optimizations  *********/
+# [QA-03] The msg.sender == owner() check in functions can be consolidated into a single modifier to improved code readability and  gas efficiency.
+https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L351-L417
+## Recommended Mitigation Steps
+```solidity
+modifier onlyOwner() {
+    require(msg.sender == owner(), "Not authorized");
+}
+
+```
+----------------------------------------------------------------------------------------------------------------
+
