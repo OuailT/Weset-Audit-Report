@@ -108,7 +108,6 @@ for (uint256 i = 0; i < _tokenIds.length; i += 1) {
 
 ```
 
-
 # [L-01] Undeclared events emitted
 There are 3 instances of this issue:  
 https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L144  
@@ -138,7 +137,7 @@ It is recommended to lock the pragma version in the contract from `^0.8.0` to a 
 Missing checks for zero-address.
 
 ## Proof of Concept
-There are 1 instances of this issue:
+There are 1 instance of this issue:
 https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L38
 
 
@@ -166,7 +165,7 @@ https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol
 
 ----------------------------------------------------------------------------------------------------------------
 
-# [QA-03] The msg.sender == owner() check in functions can be consolidated into a single modifier to improved code readability and  gas efficiency.
+# [G-03] The msg.sender == owner() check in functions can be consolidated into a single modifier to improve code readability and  gas efficiency.
 https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L351-L417  
 
 ## Recommended Mitigation Steps
