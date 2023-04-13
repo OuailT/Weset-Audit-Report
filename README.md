@@ -1,5 +1,5 @@
-# Weset-Audit-Report
-
+## West project - The Final Audit Report
+### The audit was conducted by Ouail Tayarth/Rose Law Group
 
 # High-severity Findings:
 # [H-01] ClaimCondition Struct data only updated in Memory, not in Storage
@@ -133,7 +133,7 @@ All Contracts
 ## Recommended Mitigation Steps
 It is recommended to lock the pragma version in the contract from `^0.8.0` to a specific version, such as `0.8.0`.
 
-# [L-02] Missing zero-address check
+# [L-03] Missing zero-address check
 Missing checks for zero-address.
 
 ## Proof of Concept
