@@ -1,6 +1,7 @@
 # Weset-Audit-Report
 
 
+# High-severity Findings:
 # [H-01] ClaimCondition Struct data only updated in Memory, not in Storage
 ## Impact
 The setClaimConditions() and claim() functions in WesetDrop.sol update the ClaimCondition struct data under certain conditions but only on the memory level and not on the storage level. Since ClaimCondition contains sensitive information, this can lead to data loss, inconsistency and a potential centralization risk.
@@ -70,7 +71,7 @@ https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L11
 ## Recommended Mitigation Steps
 Make sure to use the `storage` instead of `memory` when updating values on the storage level/blockchain
 
-
+# Medium Findings:
 # [M-01] WesetProtocol.sol: Sanity check bypass in burn() & burnBatch() functions
 
 ## Impact
@@ -107,7 +108,7 @@ for (uint256 i = 0; i < _tokenIds.length; i += 1) {
 }
 
 ```
-
+# Low Findings:
 # [L-01] Undeclared events emitted
 There are 3 instances of this issue:  
 https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetDrop.sol#L144  
@@ -132,7 +133,6 @@ All Contracts
 ## Recommended Mitigation Steps
 It is recommended to lock the pragma version in the contract from `^0.8.0` to a specific version, such as `0.8.0`.
 
-----------------------------------------------------------------------------------------------------------------
 # [L-02] Missing zero-address check
 Missing checks for zero-address.
 
@@ -149,22 +149,18 @@ require(_receiver != address(0));
 
 ```
 
-----------------------------------------------------------------------------------------------------------------
-
+# Quality Assurance:
 # [QA-01] use the latest version of the Solidity compiler
 It's recommended to use the latest version of the Solidity compiler `0.8.19` to benefit from the latest security features and bug fixes.
 
 # [QA-02] unused of NatSpec
 It is best practice to use descriptive comments that comply with NatSpec to provide clear and comprehensive documentation for contracts, functions, and return variables.
 
-----------------------------------------------------------------------------------------------------------------
-
 # [QA-03] TWString is used but uncomment which will make the TWString not benefiting from the library  
 https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L19  
 https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L39  
 
-----------------------------------------------------------------------------------------------------------------
-
+# Gas Optimizations:
 # [G-03] The msg.sender == owner() check in functions can be consolidated into a single modifier to improve code readability and  gas efficiency.
 https://github.com/wesetio/weset-contracts/blob/main/contracts/WesetProtocol.sol#L351-L417  
 
